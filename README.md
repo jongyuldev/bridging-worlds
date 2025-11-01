@@ -43,39 +43,42 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Step 4: Download Models (for Simple Version)
-
-If using the simple version with MobileNet SSD:
+### Step 4: Run the Application
 
 ```bash
-python install_models.py
+python main.py
 ```
+
+**Note**: On first run, YOLOv8 will automatically download the pre-trained model to the `models/` folder (~6MB).
 
 ## Usage
 
-### Full-Featured Version (YOLO)
+### Full-Featured Version (Recommended)
 
-This version uses YOLOv8 for superior object detection accuracy:
+Run the main application:
 
 ```bash
-python vision_assistant.py
+python main.py
 ```
 
-**Note**: On first run, YOLOv8 will automatically download the pre-trained model (~6MB).
+This uses YOLOv8 for superior object detection accuracy with color recognition and natural language descriptions.
 
 ### Lightweight Version (MobileNet SSD)
 
-This version is faster and uses less resources:
+If you need faster performance on older hardware:
 
 ```bash
-python simple_vision_assistant.py
+# First, download the MobileNet models
+python utils/install_models.py
+
+# Then run the simple version
+python src/simple_vision_assistant.py
 ```
 
 ### Keyboard Controls
 
 - **Q**: Quit the application
-- **S**: Get immediate scene description
-- **H**: Get help (full version only)
+- **S**: Analyze scene and get immediate voice description
 
 ## How It Works
 
@@ -98,22 +101,38 @@ The assistant might say things like:
 
 ## Architecture
 
+### Project Structure
+
+```
+bridging-worlds/
+├── main.py                    # Main entry point
+├── src/                       # Source code
+│   ├── vision_assistant.py    # Full-featured version
+│   └── simple_vision_assistant.py  # Lightweight version
+├── models/                    # AI models (auto-downloaded)
+├── utils/                     # Utility scripts
+├── tests/                     # Test files
+└── docs/                      # Documentation
+```
+
+See [docs/STRUCTURE.md](docs/STRUCTURE.md) for detailed structure information.
+
 ### Main Components
 
-1. **VisionAssistant Class** (`vision_assistant.py`)
+1. **VisionAssistant Class** (`src/vision_assistant.py`)
    - Uses YOLOv8 for state-of-the-art object detection
    - Advanced distance and position estimation
    - Sophisticated scene description generation
 
-2. **SimpleVisionAssistant Class** (`simple_vision_assistant.py`)
+2. **SimpleVisionAssistant Class** (`src/simple_vision_assistant.py`)
    - Uses MobileNet SSD (lighter, faster)
    - Basic object detection with COCO classes
    - Simplified scene descriptions
 
 3. **Text-to-Speech Module**
-   - Uses pyttsx3 for cross-platform TTS
-   - Non-blocking speech queue system
-   - Adjustable speech rate and volume
+   - Uses Windows SAPI (win32com) for reliable TTS
+   - Synchronous speech delivery for guaranteed audio playback
+   - Clear, natural voice descriptions
 
 ## Detected Objects
 
@@ -127,23 +146,17 @@ The system can detect various objects including:
 
 ## Customization
 
-### Adjust Announcement Interval
-
-In `vision_assistant.py` or `simple_vision_assistant.py`, modify:
-
-```python
-self.announcement_interval = 5  # Change to desired seconds
-```
-
 ### Adjust Speech Rate
 
+In `src/vision_assistant.py`, modify:
+
 ```python
-self.tts_engine.setProperty('rate', 150)  # Increase for faster speech
+self.tts_engine.Rate = 1  # Increase for faster speech (-10 to 10)
 ```
 
 ### Adjust Detection Confidence
 
-In `vision_assistant.py`:
+In `src/vision_assistant.py`:
 ```python
 results = self.model(frame, conf=0.5, verbose=False)  # Change conf value
 ```
@@ -169,18 +182,20 @@ results = self.model(frame, conf=0.5, verbose=False)  # Change conf value
 - Try changing the camera index in code: `cv2.VideoCapture(1)` instead of `0`
 
 ### TTS Not Working
-- On Windows: Should work out of the box
+- On Windows: Uses native SAPI - should work out of the box
+- Verify with: `python tests/test_tts.py`
 - On Linux: Install espeak: `sudo apt-get install espeak`
 - On macOS: Should work with native speech synthesis
 
 ### Slow Performance
-- Use the simple version: `simple_vision_assistant.py`
+- Use the simple version: `python src/simple_vision_assistant.py`
 - Reduce camera resolution in code
 - Close other applications
 
 ### Model Download Issues
 - Check your internet connection
-- Manually download models and place in the correct directories
+- Models are automatically saved to the `models/` directory
+- Manually download and place in `models/` folder if needed
 
 ## Future Enhancements
 
