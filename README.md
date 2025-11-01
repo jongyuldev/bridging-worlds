@@ -1,9 +1,12 @@
-# Bridging Worlds - Vision Assistant for the Blind
+# Bridging Worlds - Accessibility Suite
 
-A computer vision application that helps blind and visually impaired people understand their surroundings using real-time object detection and text-to-speech feedback.
+A comprehensive computer vision application suite that bridges communication and accessibility gaps. This project includes:
+1. **Vision Assistant** - Helps blind and visually impaired people understand their surroundings
+2. **Sign Language Interpreter** - Facilitates communication between signing and non-signing individuals
 
 ## Features
 
+### Vision Assistant
 - **Real-time Object Detection**: Uses advanced AI models (YOLO or MobileNet SSD) to detect objects in the environment
 - **Text-to-Speech Feedback**: Provides audio descriptions of detected objects and their positions
 - **Distance Estimation**: Estimates relative distances of detected objects (close, medium, far)
@@ -11,6 +14,14 @@ A computer vision application that helps blind and visually impaired people unde
 - **Automatic Announcements**: Periodically announces the scene description (every 5 seconds by default)
 - **On-Demand Descriptions**: Press 's' to get an immediate scene description
 - **Multiple Implementations**: Choose between a full-featured version (YOLO) or a lightweight version (MobileNet SSD)
+
+### Sign Language Interpreter 🤟 NEW!
+- **Hand Keypoint Detection**: Uses MediaPipe to detect 21 keypoints per hand in real-time
+- **Gesture Recognition**: Recognizes common signs including numbers, letters, and common phrases
+- **Real-time Translation**: Displays recognized gestures with confidence levels
+- **Translation History**: Keeps track of gesture sequences for conversation flow
+- **Dual Hand Support**: Detects and interprets up to 2 hands simultaneously
+- **Visual Feedback**: Shows hand landmarks and connections with color-coded visualization
 
 ## Installation
 
@@ -43,17 +54,23 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Step 4: Run the Application
+### Step 4: Run the Applications
 
+**Vision Assistant:**
 ```bash
 python main.py
+```
+
+**Sign Language Interpreter:**
+```bash
+python src/sign.py
 ```
 
 **Note**: On first run, YOLOv8 will automatically download the pre-trained model to the `models/` folder (~6MB).
 
 ## Usage
 
-### Full-Featured Version (Recommended)
+### Vision Assistant (Full-Featured)
 
 Run the main application:
 
@@ -63,7 +80,29 @@ python main.py
 
 This uses YOLOv8 for superior object detection accuracy with color recognition and natural language descriptions.
 
-### Lightweight Version (MobileNet SSD)
+### Sign Language Interpreter
+
+Run the sign language interpreter:
+
+```bash
+python src/sign.py
+```
+
+This uses MediaPipe's hand keypoint detection to recognize sign language gestures in real-time. See [docs/SIGN_LANGUAGE_GUIDE.md](docs/SIGN_LANGUAGE_GUIDE.md) for detailed usage.
+
+**Keyboard Controls:**
+- **Q**: Quit
+- **C**: Clear translation history
+
+**Supported Gestures:**
+- Numbers 0-5
+- Thumbs up/down (Yes/No)
+- OK sign, Peace sign
+- Directional pointing
+- ASL "I Love You"
+- And more...
+
+### Vision Assistant (Lightweight Version)
 
 If you need faster performance on older hardware:
 
@@ -105,14 +144,18 @@ The assistant might say things like:
 
 ```
 bridging-worlds/
-├── main.py                    # Main entry point
+├── main.py                    # Main entry point (Vision Assistant)
 ├── src/                       # Source code
-│   ├── vision_assistant.py    # Full-featured version
-│   └── simple_vision_assistant.py  # Lightweight version
+│   ├── vision_assistant.py    # Full-featured vision assistant
+│   ├── simple_vision_assistant.py  # Lightweight vision assistant
+│   ├── sign.py                # Sign language interpreter ⭐ NEW
+│   └── sign_miya.py           # Hand tracking demo
 ├── models/                    # AI models (auto-downloaded)
 ├── utils/                     # Utility scripts
 ├── tests/                     # Test files
 └── docs/                      # Documentation
+    ├── SIGN_LANGUAGE_GUIDE.md # Sign language interpreter guide ⭐ NEW
+    └── ...
 ```
 
 See [docs/STRUCTURE.md](docs/STRUCTURE.md) for detailed structure information.
@@ -129,7 +172,13 @@ See [docs/STRUCTURE.md](docs/STRUCTURE.md) for detailed structure information.
    - Basic object detection with COCO classes
    - Simplified scene descriptions
 
-3. **Text-to-Speech Module**
+3. **SignLanguageInterpreter Class** (`src/sign.py`) ⭐ NEW
+   - Uses MediaPipe for hand keypoint detection
+   - Recognizes 15+ common gestures and signs
+   - Real-time gesture smoothing and translation
+   - Visual feedback with hand landmarks
+
+4. **Text-to-Speech Module**
    - Uses Windows SAPI (win32com) for reliable TTS
    - Synchronous speech delivery for guaranteed audio playback
    - Clear, natural voice descriptions
@@ -199,12 +248,21 @@ results = self.model(frame, conf=0.5, verbose=False)  # Change conf value
 
 ## Future Enhancements
 
-Potential improvements:
+### Vision Assistant
 - [ ] Distance measurement using depth cameras
 - [ ] Face recognition for familiar people
 - [ ] Obstacle warning system
 - [ ] Indoor navigation assistance
 - [ ] Text reading (OCR) for signs and labels
+
+### Sign Language Interpreter
+- [ ] Full ASL alphabet (A-Z fingerspelling)
+- [ ] Machine learning for complex phrases
+- [ ] Multi-language sign support (BSL, JSL, etc.)
+- [ ] Sentence construction and grammar
+- [ ] Text-to-sign animation (reverse translation)
+
+### General
 - [ ] Mobile app version
 - [ ] Multi-language support
 - [ ] Cloud-based processing option
@@ -221,6 +279,7 @@ This project is open source and available under the MIT License.
 ## Acknowledgments
 
 - YOLOv8 by Ultralytics
+- MediaPipe by Google
 - OpenCV community
 - pyttsx3 developers
 - MobileNet SSD by chuanqi305
@@ -231,8 +290,8 @@ For questions or suggestions, please open an issue on GitHub.
 
 ## Disclaimer
 
-This application is designed to assist visually impaired users but should not be relied upon as the sole means of navigation or safety. Always use additional assistive devices and techniques as recommended by professionals.
+These applications are designed to assist users but should not be relied upon as the sole means of navigation, safety, or communication. The sign language interpreter recognizes common gestures but is not a complete ASL translation system. Always use additional assistive devices and techniques as recommended by professionals.
 
 ---
 
-**Made with ❤️ to help bridge the gap between vision and understanding**
+**Made with ❤️ to help bridge communication and accessibility gaps**
