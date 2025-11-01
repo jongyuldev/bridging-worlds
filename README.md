@@ -96,8 +96,7 @@ python src/simple_vision_assistant.py
 
 The assistant might say things like:
 - "I see one person at medium distance in front of you"
-- "I see 3 objects. A car far away on your right, a person close on your left"
-- "One dog very close in front of you"
+- "I see 3 objects. A car far away on your right, a person close on your left, one dog very close in front of you"
 
 ## Architecture
 
