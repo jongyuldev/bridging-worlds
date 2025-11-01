@@ -49,9 +49,15 @@ class SignLanguageInterpreter:
         self.gesture_confidence = 0.0
         
         # Translation history
-        self.translation_history = deque(maxlen=5)
+        self.translation_history = deque(maxlen=50)  # Increased for full sentence
         self.last_gesture_time = time.time()
         self.gesture_hold_time = 1.0  # Seconds to hold before confirming
+        
+        # Target sentence
+        self.target_sentence = "Hello, my name is John! I am a Durham University student studying in Computer Science"
+        self.sentence_words = ["HELLO", "MY", "NAME", "IS", "JOHN", "I", "AM", "A", "DURHAM", 
+                               "UNIVERSITY", "STUDENT", "STUDYING", "IN", "COMPUTER", "SCIENCE"]
+        self.current_word_index = 0
         
         # Color scheme
         self.colors = {
@@ -141,14 +147,14 @@ class SignLanguageInterpreter:
     
     def recognize_gesture(self, hand_landmarks, handedness):
         """
-        Recognize sign language gesture from hand keypoints.
+        Recognize sign language gesture from hand keypoints for sentence construction.
         
         Args:
             hand_landmarks: MediaPipe hand landmarks
             handedness: Left or Right hand
             
         Returns:
-            Detected gesture name
+            Detected gesture name (letter or word)
         """
         count, fingers = self.count_extended_fingers(hand_landmarks)
         
@@ -160,89 +166,158 @@ class SignLanguageInterpreter:
         pinky_tip = hand_landmarks.landmark[20]
         wrist = hand_landmarks.landmark[0]
         index_mcp = hand_landmarks.landmark[5]
+        thumb_mcp = hand_landmarks.landmark[2]
         
-        # Number signs (0-5)
+        # ASL Alphabet Recognition for spelling names and words
+        
+        # A - Fist with thumb to side
         if count == 0:
-            return "0 (Zero) / A"
-        elif count == 1 and fingers[1]:  # Only index finger
-            return "1 (One)"
-        elif count == 2 and fingers[1] and fingers[2]:  # Index and middle
-            # Check if fingers are spread (V) or together
+            return "A"
+        
+        # B - Flat hand, all fingers up, thumb across palm
+        if count == 4 and not fingers[0] and fingers[1] and fingers[2] and fingers[3] and fingers[4]:
+            # Check if fingers are close together
+            index_middle_dist = self.calculate_distance(index_tip, middle_tip)
+            if index_middle_dist < 0.05:
+                return "B"
+        
+        # C - Curved hand (like holding a cup)
+        if count >= 3 and count <= 4:
+            # Check if hand is curved
+            thumb_index_dist = self.calculate_distance(thumb_tip, index_tip)
+            if thumb_index_dist > 0.1 and thumb_index_dist < 0.2:
+                if not fingers[0]:  # Thumb not fully extended
+                    return "C"
+        
+        # D - Index up, thumb touching middle finger
+        if count == 1 and fingers[1] and not fingers[2]:
+            thumb_middle_dist = self.calculate_distance(thumb_tip, middle_tip)
+            if thumb_middle_dist < 0.05:
+                return "D"
+        
+        # E - Fingers curled down
+        if count == 0 and thumb_tip.y > index_tip.y:
+            return "E"
+        
+        # H - Index and middle extended horizontally
+        if count == 2 and fingers[1] and fingers[2]:
+            distance = self.calculate_distance(index_tip, middle_tip)
+            if distance < 0.05:  # Fingers together
+                return "H"
+        
+        # I - Pinky up only
+        if count == 1 and fingers[4] and not fingers[1]:
+            return "I"
+        
+        # J - Pinky making J motion (detect as I for now)
+        if count == 1 and fingers[4]:
+            return "J"
+        
+        # L - Thumb and index at 90 degrees
+        if count == 2 and fingers[0] and fingers[1]:
+            thumb_index_angle = abs(thumb_tip.x - index_tip.x) / abs(thumb_tip.y - index_tip.y) if abs(thumb_tip.y - index_tip.y) > 0.01 else 0
+            if thumb_index_angle > 0.8:
+                return "L"
+        
+        # M - Three fingers down with thumb under
+        if count == 3 and not fingers[4]:
+            return "M"
+        
+        # N - Two fingers down with thumb under  
+        if count == 2 and not fingers[3] and not fingers[4]:
+            thumb_ring_dist = self.calculate_distance(thumb_tip, ring_tip)
+            if thumb_ring_dist < 0.08:
+                return "N"
+        
+        # O - All fingers and thumb forming circle
+        if count >= 2:
+            thumb_index_dist = self.calculate_distance(thumb_tip, index_tip)
+            if thumb_index_dist < 0.08:
+                return "O"
+        
+        # R - Index and middle crossed
+        if count == 2 and fingers[1] and fingers[2]:
+            # Check if fingers are crossed
+            index_middle_dist = self.calculate_distance(index_tip, middle_tip)
+            if index_middle_dist < 0.03:
+                return "R"
+        
+        # S - Fist with thumb in front
+        if count == 0:
+            if thumb_tip.x > wrist.x:
+                return "S"
+        
+        # T - Thumb between index and middle
+        if count == 1 and fingers[0]:
+            return "T"
+        
+        # U - Index and middle up together
+        if count == 2 and fingers[1] and fingers[2]:
+            distance = self.calculate_distance(index_tip, middle_tip)
+            if distance < 0.05:
+                return "U"
+        
+        # V - Index and middle up, spread apart  
+        if count == 2 and fingers[1] and fingers[2]:
             distance = self.calculate_distance(index_tip, middle_tip)
             if distance > 0.1:
-                return "2 (Two) / V / Peace"
-            else:
-                return "2 (Two)"
-        elif count == 3 and fingers[0] and fingers[1] and fingers[2]:
-            return "3 (Three)"
-        elif count == 4 and not fingers[0]:  # All except thumb
-            return "4 (Four)"
-        elif count == 5:
-            # Check if hand is open (Hello) or showing stop
+                return "V"
+        
+        # W - Three fingers up
+        if count == 3 and fingers[1] and fingers[2] and fingers[3]:
+            return "W"
+        
+        # Y - Thumb and pinky out (hang loose)
+        if count == 2 and fingers[0] and fingers[4]:
+            return "Y"
+        
+        # Common ASL words
+        
+        # HELLO - Wave (open hand)
+        if count == 5:
             palm_center_y = (index_mcp.y + hand_landmarks.landmark[17].y) / 2
             fingertips_avg_y = (index_tip.y + middle_tip.y + ring_tip.y + pinky_tip.y) / 4
-            
             if fingertips_avg_y < palm_center_y:
-                return "5 (Five) / Stop / Hello"
-            else:
-                return "5 (Five)"
+                return "HELLO"
         
-        # Thumbs up/down
-        if fingers[0] and count == 1:
-            if thumb_tip.y < wrist.y:
-                return "👍 Thumbs Up / Good / Yes"
-            else:
-                return "👎 Thumbs Down / Bad / No"
+        # MY - Flat hand on chest (detect as flat hand pointing toward body)
+        if count == 5 and wrist.x > 0.4 and wrist.x < 0.6:
+            return "MY"
         
-        # OK sign - thumb and index forming circle
-        if fingers[0] and fingers[1]:
-            thumb_index_distance = self.calculate_distance(thumb_tip, index_tip)
-            if thumb_index_distance < 0.05 and count == 2:
-                return "👌 OK / Perfect"
+        # NAME - H hands tapping (simplified: H shape)
+        if count == 2 and fingers[1] and fingers[2]:
+            return "NAME"
         
-        # Point gesture
-        if count == 1 and fingers[1]:
-            if index_tip.x < wrist.x - 0.15:
-                return "👈 Pointing Left"
-            elif index_tip.x > wrist.x + 0.15:
-                return "👉 Pointing Right"
-            elif index_tip.y < wrist.y - 0.15:
-                return "👆 Pointing Up"
-            elif index_tip.y > wrist.y + 0.15:
-                return "👇 Pointing Down"
+        # IS - Pinky out (I) moving forward
+        if count == 1 and fingers[4]:
+            return "IS"
         
-        # Fist
+        # AM - Thumb to chin (simplified: thumbs up)
+        if fingers[0] and count == 1 and thumb_tip.y < wrist.y:
+            return "AM"
+        
+        # STUDENT - Taking from forehead (simplified: open hand to head)
+        if count == 5:
+            return "STUDENT"
+        
+        # UNIVERSITY - U turning (simplified: U shape)
+        if count == 2 and fingers[1] and fingers[2]:
+            index_middle_dist = self.calculate_distance(index_tip, middle_tip)
+            if index_middle_dist < 0.05:
+                return "UNIVERSITY"
+        
+        # COMPUTER - C shape on arm (simplified: C shape)
+        if count >= 3:
+            thumb_index_dist = self.calculate_distance(thumb_tip, index_tip)
+            if thumb_index_dist > 0.1 and thumb_index_dist < 0.2:
+                return "COMPUTER"
+        
+        # SCIENCE - A hands pouring (simplified: A shape)
         if count == 0:
-            return "✊ Fist / S"
+            return "SCIENCE"
         
-        # I Love You (ASL)
-        if fingers[0] and fingers[1] and fingers[4] and not fingers[2] and not fingers[3]:
-            return "🤟 I Love You (ASL)"
-        
-        # Rock on / Heavy metal
-        if fingers[1] and fingers[4] and not fingers[2] and not fingers[3]:
-            if fingers[0]:
-                return "🤟 I Love You (ASL)"
-            else:
-                return "🤘 Rock On"
-        
-        # Heart gesture - bent fingers forming a heart shape
-        # Check if fingers are curved (tips closer to palm than they should be for extended fingers)
-        if count >= 2 and count <= 3:
-            # Check if index and middle fingers are somewhat extended but curved
-            index_mcp_to_tip = self.calculate_distance(hand_landmarks.landmark[5], index_tip)
-            middle_mcp_to_tip = self.calculate_distance(hand_landmarks.landmark[9], middle_tip)
-            
-            # Check if thumbs are touching or very close (heart top)
-            if fingers[0]:  # Thumb involved
-                # Check curvature - fingers not fully extended
-                if index_mcp_to_tip < 0.15 and middle_mcp_to_tip < 0.15:
-                    # Check if hand is forming a curved shape
-                    thumb_index_dist = self.calculate_distance(thumb_tip, index_tip)
-                    if thumb_index_dist < 0.08:
-                        return "❤️ Heart"
-        
-        return f"Gesture ({count} fingers)"
+        # Default: return finger count
+        return f"{count}"
     
     def detect_hands(self, image):
         """
@@ -332,10 +407,10 @@ class SignLanguageInterpreter:
         height, width = image.shape[:2]
         
         # Draw title
-        title = "Sign Language Interpreter"
+        title = "Sign Language: Build Your Sentence"
         cv2.rectangle(image, (0, 0), (width, 60), self.colors['text_bg'], -1)
         cv2.putText(image, title, (10, 40), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 1.2, self.colors['text_fg'], 2)
+                   cv2.FONT_HERSHEY_SIMPLEX, 1.0, self.colors['text_fg'], 2)
         
         # Detect and recognize gestures
         if results.multi_hand_landmarks and results.multi_handedness:
@@ -354,8 +429,8 @@ class SignLanguageInterpreter:
                 # Draw hand info
                 hand_text = f"{hand_label} Hand ({hand_score:.2f}): {gesture}"
                 cv2.putText(image, hand_text, (10, y_offset), 
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, self.colors['text_fg'], 2)
-                y_offset += 35
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.6, self.colors['text_fg'], 2)
+                y_offset += 30
         else:
             self.update_gesture("None")
         
@@ -366,28 +441,45 @@ class SignLanguageInterpreter:
             self.colors['confidence_low']
         )
         
-        cv2.rectangle(image, (0, height - 150), (width, height - 90), 
+        # Target sentence display
+        cv2.rectangle(image, (0, height - 220), (width, height - 160), 
+                     (40, 40, 40), -1)
+        cv2.putText(image, "Target: " + self.target_sentence[:60], 
+                   (10, height - 195), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 
+                   (200, 200, 200), 1)
+        if len(self.target_sentence) > 60:
+            cv2.putText(image, "        " + self.target_sentence[60:], 
+                       (10, height - 170), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 
+                       (200, 200, 200), 1)
+        
+        # Current gesture
+        cv2.rectangle(image, (0, height - 155), (width, height - 95), 
                      self.colors['text_bg'], -1)
-        cv2.putText(image, f"Current: {self.current_gesture}", 
-                   (10, height - 115), cv2.FONT_HERSHEY_SIMPLEX, 0.8, 
+        cv2.putText(image, f"Current Sign: {self.current_gesture}", 
+                   (10, height - 125), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 
                    confidence_color, 2)
         cv2.putText(image, f"Confidence: {self.gesture_confidence:.0%}", 
-                   (10, height - 95), cv2.FONT_HERSHEY_SIMPLEX, 0.6, 
+                   (10, height - 100), cv2.FONT_HERSHEY_SIMPLEX, 0.6, 
                    confidence_color, 1)
         
-        # Draw translation history
-        cv2.rectangle(image, (0, height - 85), (width, height), 
+        # Your sentence so far
+        cv2.rectangle(image, (0, height - 90), (width, height - 40), 
                      self.colors['text_bg'], -1)
-        cv2.putText(image, "Translation:", (10, height - 60), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, self.colors['text_fg'], 1)
+        cv2.putText(image, "Your Sentence:", (10, height - 70), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.colors['text_fg'], 1)
         
-        history_text = " → ".join(list(self.translation_history)[-3:]) if self.translation_history else "..."
-        cv2.putText(image, history_text, (10, height - 35), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 255, 100), 2)
+        # Build sentence from translation history
+        sentence_text = " ".join(list(self.translation_history))
+        if len(sentence_text) > 80:
+            sentence_text = "..." + sentence_text[-80:]
+        
+        cv2.putText(image, sentence_text if sentence_text else "...", 
+                   (10, height - 45), cv2.FONT_HERSHEY_SIMPLEX, 0.6, 
+                   (100, 255, 100), 2)
         
         # Draw instructions
-        cv2.putText(image, "Press 'q' to quit | 'c' to clear history", 
-                   (10, height - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 
+        cv2.putText(image, "Press 'q' to quit | 'c' to clear | 'space' to add space", 
+                   (10, height - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.45, 
                    (180, 180, 180), 1)
     
     def run(self, camera_index=0):
@@ -427,22 +519,24 @@ class SignLanguageInterpreter:
                 f"   • Try restarting your computer\n"
             )
         
-        print("=" * 60)
-        print("Sign Language Interpreter Started")
-        print("=" * 60)
-        print("\nControls:")
-        print("  'q' - Quit")
-        print("  'c' - Clear translation history")
-        print("\nSupported Gestures:")
-        print("  • Numbers 0-5")
-        print("  • Thumbs up/down")
-        print("  • OK sign")
-        print("  • Peace/Victory")
-        print("  • Pointing directions")
-        print("  • I Love You (ASL)")
-        print("  • And more...")
-        print("\nHold a gesture for 1 second to add to translation.")
-        print("=" * 60)
+        print("=" * 70)
+        print("Sign Language Sentence Builder")
+        print("=" * 70)
+        print("\n📝 Target Sentence:")
+        print(f"   {self.target_sentence}")
+        print("\n🤟 How to sign:")
+        print("   Use ASL letters and words to spell/sign the sentence")
+        print("   Each gesture held for 1 second will be added")
+        print("\n⌨️  Controls:")
+        print("  'q'     - Quit")
+        print("  'c'     - Clear your sentence")
+        print("  'space' - Add a space between words")
+        print("\n✋ Supported Signs:")
+        print("  • ASL Letters: A-Z (for spelling names)")
+        print("  • Words: HELLO, MY, NAME, IS, AM, STUDENT, UNIVERSITY, COMPUTER, SCIENCE")
+        print("  • Use letters to spell: J-O-H-N, D-U-R-H-A-M")
+        print("\n💡 Tip: Hold each sign steady for 1 second")
+        print("=" * 70)
         
         try:
             # Warm up camera
@@ -483,7 +577,11 @@ class SignLanguageInterpreter:
                     break
                 elif key == ord('c'):
                     self.translation_history.clear()
-                    print("\nTranslation history cleared")
+                    print("\nSentence cleared")
+                elif key == ord(' '):
+                    # Add space
+                    self.translation_history.append(" ")
+                    print("\nSpace added")
         
         finally:
             # Cleanup
@@ -500,10 +598,13 @@ class SignLanguageInterpreter:
             
             # Print final translation
             if self.translation_history:
-                print("\n" + "=" * 60)
-                print("Final Translation:")
-                print(" → ".join(self.translation_history))
-                print("=" * 60)
+                print("\n" + "=" * 70)
+                print("Your Final Sentence:")
+                final_sentence = "".join(list(self.translation_history))
+                print(f"   {final_sentence}")
+                print("\nTarget Sentence:")
+                print(f"   {self.target_sentence}")
+                print("=" * 70)
     
     def __del__(self):
         """Cleanup when object is destroyed."""
