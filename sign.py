@@ -54,12 +54,19 @@ def draw_landmarks(image, results):
     )
 
 cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    raise SystemExit("Cannot open webcam. Check camera device index and grant permission to access the camera.")
+
 # Set mediapipe model 
 with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
-    while cap.isOpened():
+    frame = None
+    while True:
 
         # Read feed
         ret, frame = cap.read()
+        if not ret:
+            print("Failed to grab frame")
+            break
 
         # Make detections
         image, results = mediapipe_detection(frame, holistic)
@@ -76,8 +83,8 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
             break
     cap.release()
     cv2.destroyAllWindows()
-
-plt.imshow(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+if frame is not None:
+    plt.imshow(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
 # cap = cv2.VideoCapture(0)
 # cap.set(3, 1920)
