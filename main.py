@@ -1,6 +1,6 @@
 """
 Main entry point for Bridging Worlds applications.
-Choose between Vision Assistant or ASL Sign Language Translator.
+AI-Powered Sign Language Interpretation and Vision Assistance Platform.
 """
 
 import sys
@@ -13,27 +13,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 def print_main_menu():
     """Display the main application menu."""
-    print("\n" + "="*70)
-    print("  BRIDGING WORLDS - ACCESSIBILITY TOOLS")
-    print("="*70)
+    print("\n" + "="*80)
+    print("  🌉 BRIDGING WORLDS - AI-POWERED ACCESSIBILITY PLATFORM")
+    print("="*80)
     print("\nChoose an application:\n")
-    print("  1. Vision Assistant (for the blind)")
-    print("  2. ASL Sign Language Translator")
-    print("  3. Exit")
-    print("\n" + "="*70)
-
-
-def print_asl_menu():
-    """Display ASL translator menu."""
-    print("\n" + "="*60)
-    print("  ASL SIGN LANGUAGE TRANSLATOR")
-    print("="*60)
-    print("\nChoose a mode:\n")
-    print("  1. Basic Recognition (MediaPipe - No training required)")
-    print("  2. Advanced Recognition (CNN Model - High accuracy)")
-    print("  3. Train New Model")
-    print("  4. Back to Main Menu")
-    print("\n" + "="*60)
+    print("  1. 🆕 Sign Language Interpreter (Hand Keypoint Detection + TTS) ⭐ RECOMMENDED")
+    print("  2. 👁️  AI Vision Assistant (Object Detection + Scene Description)")
+    print("  3. ℹ️  About & Documentation")
+    print("  4. 🚪 Exit")
+    print("\n" + "="*80)
 
 
 def check_model_exists():
@@ -42,21 +30,38 @@ def check_model_exists():
     return model_path.exists()
 
 
-def run_vision_assistant():
-    """Run the vision assistant application."""
-    print("\n" + "=" * 70)
-    print("  VISION ASSISTANT FOR THE BLIND")
-    print("=" * 70)
-    print("\nStarting the application...")
-    print("\nControls:")
-    print("  Press 'S' - Analyze and describe the scene with voice")
-    print("  Press 'Q' - Quit the application")
-    print("\n" + "=" * 70 + "\n")
+def run_sign_language_interpreter():
+    """Run the advanced sign language interpreter with hand keypoint detection."""
+    print("\n" + "=" * 80)
+    print("  🆕 ADVANCED SIGN LANGUAGE INTERPRETER")
+    print("=" * 80)
+    print("\n✨ Features:")
+    print("  • Real-time hand keypoint detection (21 landmarks per hand)")
+    print("  • Sign language gesture interpretation")
+    print("  • Text-to-Speech output")
+    print("  • Interactive learning mode")
+    print("  • Dual-hand tracking")
+    print("\n🎮 Controls:")
+    print("  SPACE  - Advance to next word and speak it")
+    print("  R      - Reset to beginning")
+    print("  L      - Toggle keypoint labels")
+    print("  K      - Toggle enhanced visualization")
+    print("  S      - Save screenshot")
+    print("  Q      - Quit")
+    print("\n" + "=" * 80 + "\n")
     
     try:
-        from vision_assistant import VisionAssistant
-        assistant = VisionAssistant()
-        assistant.run()
+        # Import here to avoid issues if dependencies aren't installed
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "hand_keypoint_detection",
+            os.path.join(os.path.dirname(__file__), 'src', 'hand_keypoint_detection.py')
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        module.main()
+    except KeyboardInterrupt:
+        print("\nReturning to menu...")
     except Exception as e:
         print(f"\nError: {e}")
         import traceback
@@ -64,98 +69,121 @@ def run_vision_assistant():
         input("\nPress Enter to continue...")
 
 
-def run_asl_translator():
-    """Run the ASL sign language translator with submenu."""
-    while True:
-        print_asl_menu()
-        choice = input("\nEnter your choice (1-4): ").strip()
-        
-        if choice == '1':
-            print("\nStarting Basic Recognition Mode...")
-            print("This mode uses MediaPipe for simple gesture detection.\n")
-            try:
-                from sign_language import SignLanguageTranslator
-                translator = SignLanguageTranslator()
-                translator.run()
-            except KeyboardInterrupt:
-                print("\nReturning to menu...")
-            except Exception as e:
-                print(f"\nError: {e}")
-                input("Press Enter to continue...")
-        
-        elif choice == '2':
-            print("\nStarting Advanced Recognition Mode...")
-            
-            if not check_model_exists():
-                print("\nWARNING: No trained model found!")
-                print("Please train a model first (option 3) or the recognition won't work.")
-                response = input("\nContinue anyway? (y/n): ").strip().lower()
-                if response != 'y':
-                    continue
-            
-            try:
-                from asl_translator import AdvancedSignLanguageTranslator
-                translator = AdvancedSignLanguageTranslator()
-                translator.run()
-            except KeyboardInterrupt:
-                print("\nReturning to menu...")
-            except Exception as e:
-                print(f"\nError: {e}")
-                input("Press Enter to continue...")
-        
-        elif choice == '3':
-            print("\nStarting Model Training...")
-            print("This will take 20-30 minutes depending on your hardware.\n")
-            
-            response = input("Continue? (y/n): ").strip().lower()
-            if response != 'y':
-                continue
-            
-            try:
-                from train_asl_model import main as train_main
-                train_main()
-                print("\nTraining completed successfully!")
-                input("Press Enter to continue...")
-            except KeyboardInterrupt:
-                print("\nTraining interrupted.")
-                input("Press Enter to continue...")
-            except Exception as e:
-                print(f"\nError during training: {e}")
-                input("Press Enter to continue...")
-        
-        elif choice == '4':
-            break
-        
-        else:
-            print("\nInvalid choice. Please enter 1, 2, 3, or 4.")
-            input("Press Enter to continue...")
+def run_vision_assistant():
+    """Run the AI vision assistant application."""
+    print("\n" + "=" * 80)
+    print("  👁️  AI VISION ASSISTANT")
+    print("=" * 80)
+    print("\n✨ Features:")
+    print("  • Real-time object detection (80+ object classes)")
+    print("  • Scene description with natural language")
+    print("  • Audio feedback for accessibility")
+    print("  • Spatial awareness and tracking")
+    print("\n🎮 Controls:")
+    print("  S - Analyze and describe the scene with voice")
+    print("  Q - Quit the application")
+    print("\n" + "=" * 80 + "\n")
+    
+    try:
+        from vision_assistant import VisionAssistant
+        assistant = VisionAssistant()
+        assistant.run()
+    except KeyboardInterrupt:
+        print("\nReturning to menu...")
+    except Exception as e:
+        print(f"\nError: {e}")
+        import traceback
+        traceback.print_exc()
+        input("\nPress Enter to continue...")
+
+
+def show_documentation():
+    """Show documentation and help information."""
+    print("\n" + "=" * 80)
+    print("  📖 BRIDGING WORLDS - DOCUMENTATION")
+    print("=" * 80)
+    print("\n🌟 About This Project:")
+    print("  Bridging Worlds is an AI-powered accessibility platform that provides:")
+    print("  • Real-time sign language interpretation")
+    print("  • Vision assistance for accessibility")
+    print("  • Text-to-Speech integration")
+    print("  • Hand keypoint detection with 21 landmarks per hand")
+    print("\n📚 Available Programs:")
+    print("  1. Sign Language Interpreter")
+    print("     - 21-point hand keypoint detection")
+    print("     - Real-time gesture interpretation")
+    print("     - Text-to-Speech output")
+    print("     - Interactive learning mode")
+    print("     - Mirror-corrected display")
+    print("")
+    print("  2. Vision Assistant")
+    print("     - YOLOv8 object detection")
+    print("     - Scene description")
+    print("     - Audio announcements")
+    print("     - Spatial awareness")
+    print("\n📚 Documentation Files:")
+    print("  • README.md - Main project overview and quick start")
+    print("  • docs/hand_keypoint_tts_usage.md - Sign language interpreter guide")
+    print("  • docs/vision_assistant_guide.md - Vision assistant documentation")
+    print("  • docs/README.md - Complete documentation index")
+    print("  • docs/QUICK_START.md - 5-minute setup guide")
+    print("\n🔗 Quick Links:")
+    print("  • GitHub: https://github.com/jongyuldev/bridging-worlds")
+    print("  • Author: jongyuldev")
+    print("\n💡 Getting Started:")
+    print("  Recommended: Start with the Sign Language Interpreter (Option 1)")
+    print("  - Shows hand keypoints in real-time")
+    print("  - Includes Text-to-Speech output")
+    print("  - Has interactive learning mode")
+    print("\n🆘 Troubleshooting:")
+    print("  • Camera not working? Close other apps using the camera")
+    print("  • No sound? Check Windows TTS settings and volume")
+    print("  • Poor detection? Improve lighting and clear background")
+    print("  • Mirror issue? All programs now have mirror-corrected display!")
+    print("\n🎯 System Requirements:")
+    print("  • Python 3.8+")
+    print("  • Webcam (720p or higher recommended)")
+    print("  • 4GB+ RAM")
+    print("  • Windows 10/11 (for TTS features)")
+    print("  • Good lighting conditions")
+    print("\n" + "=" * 80)
+    input("\nPress Enter to return to main menu...")
 
 
 def main():
     """Main application entry point."""
     while True:
         print_main_menu()
-        choice = input("\nEnter your choice (1-3): ").strip()
+        choice = input("\nEnter your choice (1-4): ").strip()
         
         if choice == '1':
-            run_vision_assistant()
+            run_sign_language_interpreter()
         
         elif choice == '2':
-            run_asl_translator()
+            run_vision_assistant()
         
         elif choice == '3':
-            print("\nThank you for using Bridging Worlds!")
-            print("Goodbye!\n")
+            show_documentation()
+        
+        elif choice == '4':
+            print("\n" + "=" * 80)
+            print("  Thank you for using Bridging Worlds! 🌉")
+            print("  Empowering communication through AI - One gesture at a time ✋")
+            print("=" * 80 + "\n")
             sys.exit(0)
         
         else:
-            print("\nInvalid choice. Please enter 1, 2, or 3.")
+            print("\n❌ Invalid choice. Please enter 1-4.")
             input("Press Enter to continue...")
 
 
 if __name__ == "__main__":
     try:
+        print("\n" + "=" * 80)
+        print("  🌉 BRIDGING WORLDS")
+        print("  AI-Powered Sign Language Interpretation & Vision Assistance")
+        print("=" * 80)
         main()
     except KeyboardInterrupt:
-        print("\n\nProgram terminated by user. Goodbye!")
+        print("\n\n👋 Program terminated by user. Goodbye!")
         sys.exit(0)
