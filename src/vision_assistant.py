@@ -316,6 +316,9 @@ class VisionAssistant:
                     print("Failed to grab frame")
                     break
                 
+                # Flip frame horizontally to mirror the camera (more natural for user)
+                frame = cv2.flip(frame, 1)
+                
                 # Always detect objects for visual display
                 detections = self.detect_objects(frame)
                 
@@ -345,6 +348,8 @@ class VisionAssistant:
                     # Get fresh detection for speech
                     ret, fresh_frame = self.cap.read()
                     if ret:
+                        # Flip frame horizontally to mirror the camera
+                        fresh_frame = cv2.flip(fresh_frame, 1)
                         detections = self.detect_objects(fresh_frame)
                         if detections:
                             description = self.analyze_scene(detections, fresh_frame.shape[1])

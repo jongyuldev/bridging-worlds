@@ -71,3 +71,8 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Dataset
+data/
+datasets/
+grassknoted/

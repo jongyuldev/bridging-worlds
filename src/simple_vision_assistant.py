@@ -160,6 +160,9 @@ class SimpleVisionAssistant:
                 if not ret:
                     break
                 
+                # Flip frame horizontally to mirror the camera (more natural for user)
+                frame = cv2.flip(frame, 1)
+                
                 # Detect objects
                 detections = self.detect_objects(frame)
                 
