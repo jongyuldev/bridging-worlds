@@ -1,8 +1,3 @@
-"""
-Main entry point for Bridging Worlds applications.
-AI-Powered Sign Language Interpretation and Vision Assistance Platform.
-"""
-
 import sys
 import os
 from pathlib import Path
@@ -17,7 +12,7 @@ def print_main_menu():
     print("  🌉 BRIDGING WORLDS - AI-POWERED ACCESSIBILITY PLATFORM")
     print("="*80)
     print("\nChoose an application:\n")
-    print("  1. 🆕 Sign Language Interpreter (Hand Keypoint Detection + TTS) ⭐ RECOMMENDED")
+    print("  1. 🆕 Sign Language Interpreter (Hand Keypoint Detection + TTS)")
     print("  2. 👁️  AI Vision Assistant (Object Detection + Scene Description)")
     print("  3. ℹ️  About & Documentation")
     print("  4. 🚪 Exit")

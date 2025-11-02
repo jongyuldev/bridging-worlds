@@ -312,7 +312,8 @@ def main():
     
     # Initialize sentence manager
     sentence = "Hello my name is John and I am a student in Durham University"
-    sentence_manager = SentenceManager(sentence, tts)
+    sentence_tts = "Hello my name is J O H N and I am a student in D U R H A M University"
+    sentence_manager = SentenceManager(sentence_tts, tts)
     
     print(f"Sentence: {sentence}")
     print(f"Total words: {len(sentence_manager.words)}")
